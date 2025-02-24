@@ -20,17 +20,24 @@ with DAG(
     tags=['example'],
 ) as dag:
 
-    # 일반적인 Task
     t1 = BashOperator(
         task_id='print_date',
         bash_command='date',
+        executor_config={
+            "pod_override": {
+                "nodeSelector": {"app": "cpu"}
+            },
+        },
     )
-
+    
     t2 = BashOperator(
         task_id='sleep',
-        depends_on_past=False,
         bash_command='sleep 5',
-        retries=3,
+        executor_config={
+            "pod_override": {
+                "nodeSelector": {"app": "cpu"}
+            },
+        },
     )
 
     # GPU 전용 Task
@@ -56,10 +63,14 @@ with DAG(
     )
 
     t4 = BashOperator(
-        task_id='templated',
-        depends_on_past=False,
-        bash_command=templated_command,
-    )
+    task_id='templated',
+    bash_command=templated_command,
+    executor_config={
+        "pod_override": {
+            "nodeSelector": {"app": "cpu"}
+        },
+    },
+)
 
     # 실행 순서
     t1 >> [t2, t3_gpu, t4]
