@@ -60,21 +60,22 @@ with DAG(
 
     # ✅ GPU Task (app:gpu 라벨이 있는 노드에서 실행)
     t3_gpu = KubernetesPodOperator(
-        task_id='gpu_task',
-        name="gpu-task-pod",
-        namespace="airflow",
-        image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
-        cmds=["bash", "-c"],
-        arguments=["nvidia-smi"],
-        labels={"app": "gpu"},
-        is_delete_operator_pod=True,
-        executor_config={
-            "pod_override": {
-                "nodeSelector": {
-                    "app": "gpu"  # GPU 노드에서 실행
-                }
-        },
-    )
+    task_id='gpu_task',
+    name="gpu-task-pod",
+    namespace="airflow",
+    image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
+    cmds=["bash", "-c"],
+    arguments=["nvidia-smi"],
+    labels={"app": "gpu"},
+    is_delete_operator_pod=True,
+    executor_config={
+        "pod_override": {
+            "nodeSelector": {
+                "app": "gpu"  # GPU 노드에서 실행
+            }
+        }
+    }  # Add this closing bracket
+)
 
     templated_command = """
     {% for i in range(5) %}
