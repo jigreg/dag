@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 
 with DAG(
-    'tutorial',
+    'gpu_example',
     default_args={
         'depends_on_past': False,
         'email': ['airflow@example.com'],
