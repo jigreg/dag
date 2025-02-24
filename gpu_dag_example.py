@@ -1,106 +1,86 @@
-from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from datetime import datetime, timedelta
+from kubernetes.client import models as k8s  # Kubernetes API 사용
 
 default_args = {
-    'depends_on_past': False,
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 
 with DAG(
-    'tutorial_k8s',
+    "tutorial_k8s_affinity",
     default_args=default_args,
-    description='A tutorial DAG with KubernetesPodOperator',
+    description="A DAG using affinity with KubernetesPodOperator",
     schedule_interval=timedelta(days=1),
     start_date=datetime(2021, 1, 1),
     catchup=False,
-    tags=['example'],
+    tags=["example"],
 ) as dag:
 
-    # ✅ 일반 CPU Task (app:cpu 라벨이 있는 노드에서 실행)
+    # ✅ CPU Task (app=cpu 노드에서 실행)
+    cpu_affinity = k8s.V1Affinity(
+        node_affinity=k8s.V1NodeAffinity(
+            required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
+                node_selector_terms=[
+                    k8s.V1NodeSelectorTerm(
+                        match_expressions=[
+                            k8s.V1NodeSelectorRequirement(
+                                key="app",
+                                operator="In",
+                                values=["cpu"],
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
+    )
+
     t1 = KubernetesPodOperator(
-        task_id='print_date',
-        name="print-date-pod",
+        task_id="cpu_task",
+        name="cpu-task-pod",
         namespace="airflow",
         image="python:3.8-slim",
         cmds=["python3", "-c"],
         arguments=["import datetime; print(datetime.datetime.now())"],
-        labels={"app": "cpu"},
         is_delete_operator_pod=True,
-        executor_config={
-            "pod_override": {
-                "nodeSelector": {
-                    "app": "cpu"  # CPU 노드에서 실행
-                }
-            }
-        },
+        in_cluster=True,
+        affinity=cpu_affinity,  # ✅ CPU 노드에서만 실행됨
+    )
+
+    # ✅ GPU Task (app=gpu 노드에서 실행)
+    gpu_affinity = k8s.V1Affinity(
+        node_affinity=k8s.V1NodeAffinity(
+            required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
+                node_selector_terms=[
+                    k8s.V1NodeSelectorTerm(
+                        match_expressions=[
+                            k8s.V1NodeSelectorRequirement(
+                                key="app",
+                                operator="In",
+                                values=["gpu"],
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
     )
 
     t2 = KubernetesPodOperator(
-        task_id='sleep',
-        name="sleep-pod",
+        task_id="gpu_task",
+        name="gpu-task-pod",
         namespace="airflow",
-        image="ubuntu",
+        image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
         cmds=["bash", "-c"],
-        arguments=["sleep 5"],
-        labels={"app": "cpu"},
+        arguments=["nvidia-smi"],
         is_delete_operator_pod=True,
-        executor_config={
-            "pod_override": {
-                "nodeSelector": {
-                    "app": "cpu"  # CPU 노드에서 실행
-                }
-            }
-        },
+        in_cluster=True,
+        affinity=gpu_affinity,  # ✅ GPU 노드에서만 실행됨
     )
 
-    # ✅ GPU Task (app:gpu 라벨이 있는 노드에서 실행)
-    t3_gpu = KubernetesPodOperator(
-    task_id='gpu_task',
-    name="gpu-task-pod",
-    namespace="airflow",
-    image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
-    cmds=["bash", "-c"],
-    arguments=["nvidia-smi"],
-    labels={"app": "gpu"},
-    is_delete_operator_pod=True,
-    executor_config={
-        "pod_override": {
-            "nodeSelector": {
-                "app": "gpu"  # GPU 노드에서 실행
-            }
-        }
-    }  # Add this closing bracket
-)
-
-    templated_command = """
-    {% for i in range(5) %}
-        echo "{{ ds }}"
-        echo "{{ macros.ds_add(ds, 7)}}"
-    {% endfor %}
-    """
-
-    t4 = KubernetesPodOperator(
-        task_id='templated',
-        name="templated-pod",
-        namespace="airflow",
-        image="ubuntu",
-        cmds=["bash", "-c"],
-        arguments=[templated_command],
-        labels={"app": "cpu"},
-        is_delete_operator_pod=True,
-        executor_config={
-            "pod_override": {
-                "nodeSelector": {
-                    "app": "cpu"  # CPU 노드에서 실행
-                }
-            }
-        },
-    )
-
-    # ✅ 실행 순서 정의
-    t1 >> [t2, t3_gpu, t4]
+    t1 >> t2
