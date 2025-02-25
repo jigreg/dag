@@ -81,10 +81,10 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행
-        resources=k8s.V1ResourceRequirements(
-            requests={"nvidia.com/gpu": "1"},  # ✅ 최소 1개의 GPU 요청
-            limits={"nvidia.com/gpu": "1"},  # ✅ 최대 1개의 GPU 사용
-        ),
+        resources={  # ✅ `dict` 형태로 수정
+            "requests": {"nvidia.com/gpu": "1"},
+            "limits": {"nvidia.com/gpu": "1"},
+        },
     )
 
     # ✅ CPU Task (app=cpu 노드에서 실행) - t3 (t1 & t2 완료 후 실행)
