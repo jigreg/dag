@@ -81,7 +81,6 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행
-        runtime_class_name="nvidia",
     )
 
     # ✅ CPU Task (app=cpu 노드에서 실행) - t3 (t1 & t2 완료 후 실행)
