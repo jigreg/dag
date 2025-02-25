@@ -77,7 +77,7 @@ with DAG(
         namespace="airflow",
         image="nvidia/cuda:12.8.0-base-ubuntu20.04",  # ✅ CUDA 환경 포함된 이미지 사용
         cmds=["bash", "-c"],
-        arguments=["nvidia-smi"],  # ✅ GPU 상태 확인
+        arguments=["nvidia-smi && sleep 120"],  # ✅ GPU 상태 확인
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행
