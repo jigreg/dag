@@ -62,7 +62,7 @@ with DAG(
                             k8s.V1NodeSelectorRequirement(
                                 key="app",
                                 operator="In",
-                                values=["gpu"],
+                                values=["cpu"],
                             )
                         ]
                     )
@@ -71,16 +71,17 @@ with DAG(
         )
     )
 
+
     t2 = KubernetesPodOperator(
-        task_id="gpu_task",
-        name="gpu-task-pod",
+        task_id="cpu_task_2",
+        name="cpu-task-pod-2",
         namespace="airflow",
-        image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
-        cmds=["bash", "-c"],
-        arguments=["nvidia-smi"],
+        image="python:3.8-slim",
+        cmds=["python3", "-c"],
+        arguments=["import datetime; print(datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        affinity=gpu_affinity,  # ✅ GPU 노드에서만 실행됨
+        affinity=cpu_affinity,  # ✅ CPU 노드에서만 실행됨
     )
 
     t1 >> t2
