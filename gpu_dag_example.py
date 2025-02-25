@@ -10,7 +10,12 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
-
+NODE_POOL = "gpu"
+container_resources_cuda_gpu = {
+    "request_memory": "1G",
+    "request_cpu": "100m",
+    "limit_gpu": "1",
+}
 with DAG(
     "tutorial_k8s_affinity",
     default_args=default_args,
@@ -42,7 +47,22 @@ with DAG(
         arguments=["import datetime; print('CPU Task 2:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        node_selectors={"app": gpu},  # ✅ CPU 노드에서 실행
+        container_resources=container_resources_cuda_gpu,
+        node_selectors={"app": NODE_POOL},
+        tolerations=[
+            {
+             'key': NODE_POOL,
+             'operator': 'Equal',
+             'value': 'true',
+             'effect': "NoSchedule"
+            },
+            {
+             'key': "nvidia.com/gpu",
+             'operator': 'Equal',
+             'value': 'present',
+             'effect': "NoSchedule"
+            }
+    ],
     )
 
     # ✅ CPU Task (app=cpu 노드에서 실행) - t3 (t1 & t2 완료 후 실행)
