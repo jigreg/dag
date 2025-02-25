@@ -75,7 +75,7 @@ with DAG(
         task_id="gpu_task",
         name="gpu-task-pod",
         namespace="airflow",
-        image="nvidia/cuda:12.8.0-base-ubuntu20.04",  # ✅ CUDA 환경 포함된 이미지 사용
+        image="nvidia/cuda:12.8.0-base-amzn2023",  # ✅ CUDA 환경 포함된 이미지 사용
         cmds=["bash", "-c"],
         arguments=["nvidia-smi && sleep 120"],  # ✅ GPU 상태 확인
         is_delete_operator_pod=True,
