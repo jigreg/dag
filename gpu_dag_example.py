@@ -35,7 +35,6 @@ with DAG(
         arguments=["import datetime; print('CPU Task 1:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        node_selectors={"app": cpu},  # ✅ CPU 노드에서 실행
     )
 
     t2 = KubernetesPodOperator(
@@ -75,7 +74,6 @@ with DAG(
         arguments=["import datetime; print('CPU Task 2:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        node_selectors={"app": cpu},  # ✅ CPU 노드에서 실행
     )
 
     # ✅ 실행 순서 정의
