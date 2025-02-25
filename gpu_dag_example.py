@@ -21,7 +21,7 @@ with DAG(
     tags=["example"],
 ) as dag:
 
-    # ✅ CPU Task (app=cpu 노드에서 실행)
+    # ✅ CPU Task (app=cpu 노드에서 실행) - t1
     cpu_affinity = k8s.V1Affinity(
         node_affinity=k8s.V1NodeAffinity(
             required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
@@ -41,18 +41,18 @@ with DAG(
     )
 
     t1 = KubernetesPodOperator(
-        task_id="cpu_task",
-        name="cpu-task-pod",
+        task_id="cpu_task_1",
+        name="cpu-task-pod-1",
         namespace="airflow",
         image="python:3.8-slim",
         cmds=["python3", "-c"],
-        arguments=["import datetime; print(datetime.datetime.now())"],
+        arguments=["import datetime; print('CPU Task 1:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        affinity=cpu_affinity,  # ✅ CPU 노드에서만 실행됨
+        affinity=cpu_affinity,  # ✅ CPU 노드에서 실행
     )
 
-    # ✅ GPU Task (app=gpu 노드에서 실행)
+    # ✅ GPU Task (app=gpu 노드에서 실행) - t2
     gpu_affinity = k8s.V1Affinity(
         node_affinity=k8s.V1NodeAffinity(
             required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
@@ -62,7 +62,7 @@ with DAG(
                             k8s.V1NodeSelectorRequirement(
                                 key="app",
                                 operator="In",
-                                values=["cpu"],
+                                values=["gpu"],  # ✅ GPU 노드에서 실행되도록 설정
                             )
                         ]
                     )
@@ -71,17 +71,34 @@ with DAG(
         )
     )
 
-
     t2 = KubernetesPodOperator(
+        task_id="gpu_task",
+        name="gpu-task-pod",
+        namespace="airflow",
+        image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",  # ✅ CUDA 환경 포함된 이미지 사용
+        cmds=["bash", "-c"],
+        arguments=["nvidia-smi"],  # ✅ GPU 상태 확인
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        affinity=gpu_affinity,  # ✅ GPU 노드에서 실행
+        resources=k8s.V1ResourceRequirements(
+            requests={"nvidia.com/gpu": "1"},  # ✅ 최소 1개의 GPU 요청
+            limits={"nvidia.com/gpu": "1"},  # ✅ 최대 1개의 GPU 사용
+        ),
+    )
+
+    # ✅ CPU Task (app=cpu 노드에서 실행) - t3 (t1 & t2 완료 후 실행)
+    t3 = KubernetesPodOperator(
         task_id="cpu_task_2",
         name="cpu-task-pod-2",
         namespace="airflow",
         image="python:3.8-slim",
         cmds=["python3", "-c"],
-        arguments=["import datetime; print(datetime.datetime.now())"],
+        arguments=["import datetime; print('CPU Task 2:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        affinity=cpu_affinity,  # ✅ CPU 노드에서만 실행됨
+        affinity=cpu_affinity,  # ✅ CPU 노드에서 실행
     )
 
-    t1 >> t2
+    # ✅ 실행 순서 정의
+    [t1, t2] >> t3  # ✅ t1 & t2 병렬 실행 후 t3 실행
