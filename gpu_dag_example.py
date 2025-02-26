@@ -42,7 +42,7 @@ with DAG(
         arguments=["import datetime; print('CPU Task 1:', datetime.datetime.now())"],
         is_delete_operator_pod=True,
         in_cluster=True,
-        node_selectors=["app": CPU_NODE_POOL],  # ✅ CPU 노드에서 실행되도록 설정
+        labels={"app": CPU_NODE_POOL},  # ✅ CPU 노드에서 실행되도록 설정
     )
 
     # ✅ GPU Task (app=gpu 노드에서 실행)
