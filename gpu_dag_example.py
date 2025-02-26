@@ -72,9 +72,9 @@ with DAG(
         task_id="gpu_task",
         name="gpu-task-pod",
         namespace="airflow",
-        image="nvidia/cuda:11.4.2-runtime-ubuntu20.04",
+        image="nvidia/cuda:12.8.0-base-ubuntu20.04",
         cmds=["bash", "-c"],
-        arguments=["nvidia-smi"],
+        arguments=["sleep 300"],
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서만 실행됨
