@@ -15,9 +15,6 @@ with DAG(
     "tutorial_k8s_affinity",
     default_args=default_args,
     description="A DAG using affinity with KubernetesPodOperator",
-    schedule_interval=False,
-    start_date=datetime(2021, 1, 1),
-    catchup=False,
     tags=["example"],
 ) as dag:
 
