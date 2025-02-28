@@ -83,10 +83,10 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
-        # resources=k8s.V1ResourceRequirements(
-        #     limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
-        #     requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
-        # ),
+        container_resources=k8s.V1ResourceRequirements(
+            limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
+            requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
+        ),
         env_vars={"TASK_TYPE": "GPU"},
     )
     # 실행 순서 지정 (CPU 태스크가 완료된 후 GPU 태스크 실행)
