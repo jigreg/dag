@@ -73,21 +73,21 @@ with DAG(
         )
     )
 
-gpu_task = KubernetesPodOperator(
-    task_id="gpu_task",
-    name="gpu-task-pod",
-    namespace="airflow",
-    image="nvidia/cuda:12.8.0-base-ubuntu20.04",
-    cmds=["bash", "-c"],  # ✅ bash 사용하도록 변경
-    arguments=["sleep 60 && nvidia-smi"],  # ✅ 올바른 명령어로 수정
-    is_delete_operator_pod=True,
-    in_cluster=True,
-    affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
-    # resources=k8s.V1ResourceRequirements(
-    #     limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
-    #     requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
-    # ),
-    env_vars={"TASK_TYPE": "GPU"},
-)
+    gpu_task = KubernetesPodOperator(
+        task_id="gpu_task",
+        name="gpu-task-pod",
+        namespace="airflow",
+        image="nvidia/cuda:12.8.0-base-ubuntu20.04",
+        cmds=["bash", "-c"],  # ✅ bash 사용하도록 변경
+        arguments=["sleep 60 && nvidia-smi"],  # ✅ 올바른 명령어로 수정
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
+        # resources=k8s.V1ResourceRequirements(
+        #     limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
+        #     requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
+        # ),
+        env_vars={"TASK_TYPE": "GPU"},
+    )
     # 실행 순서 지정 (CPU 태스크가 완료된 후 GPU 태스크 실행)
     cpu_task >> gpu_task
