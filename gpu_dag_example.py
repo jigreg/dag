@@ -52,6 +52,10 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=cpu_affinity,  # ✅ CPU 노드에서 실행됨
+        container_resources=k8s.V1ResourceRequirements(
+            limits={"cpu": "1", "memory": "1Gi"},  # ✅ CPU 태스크 리소스 제한 설정
+            requests={"cpu": "0.5", "memory": "512Mi"},  # ✅ 최소 요청 리소스 설정
+        ),
     )
 
     # ✅ GPU Task (app=gpu 태그를 가진 노드에서 실행)
