@@ -52,11 +52,6 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=cpu_affinity,  # ✅ CPU 노드에서 실행됨
-        resources=k8s.V1ResourceRequirements(
-            limits={"cpu": "1", "memory": "512Mi"},
-            requests={"cpu": "0.5", "memory": "256Mi"},
-        ),
-        env_vars={"TASK_TYPE": "CPU"},
     )
 
     # ✅ GPU Task (app=gpu 태그를 가진 노드에서 실행)
@@ -88,10 +83,10 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
-        resources=k8s.V1ResourceRequirements(
-            limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
-            requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
-        ),
+        # resources=k8s.V1ResourceRequirements(
+        #     limits={"nvidia.com/gpu": "1", "memory": "2Gi"},
+        #     requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
+        # ),
         env_vars={"TASK_TYPE": "GPU"},
     )
 
