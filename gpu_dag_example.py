@@ -53,8 +53,8 @@ with DAG(
         in_cluster=True,
         affinity=cpu_affinity,  # ✅ CPU 노드에서 실행됨
         container_resources=k8s.V1ResourceRequirements(
-            limits={"cpu": "1", "memory": "1Gi"},  # ✅ CPU 태스크 리소스 제한 설정
-            requests={"cpu": "0.5", "memory": "512Mi"},  # ✅ 최소 요청 리소스 설정
+            limits={"cpu": "1", "memory": "1Gi"}, 
+            requests={"cpu": "0.5", "memory": "512Mi"},  
         ),
     )
 
@@ -82,8 +82,8 @@ with DAG(
         name="gpu-task-pod",
         namespace="airflow",
         image="nvidia/cuda:12.8.0-base-ubuntu20.04",
-        cmds=["bash", "-c"],  # ✅ bash 사용하도록 변경
-        arguments=["sleep 60 && nvidia-smi"],  # ✅ 올바른 명령어로 수정
+        cmds=["bash", "-c"],  
+        arguments=["sleep 60 && nvidia-smi"],
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
