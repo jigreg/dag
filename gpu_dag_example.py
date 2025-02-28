@@ -78,8 +78,8 @@ with DAG(
         name="gpu-task-pod",
         namespace="airflow",
         image="nvidia/cuda:12.8.0-base-ubuntu20.04",
-        cmds=["python3", "-c"],
-        arguments=["import datetime; print(f'GPU Task executed at: {datetime.datetime.now()}')"],
+        cmds=["nvnida-smi"],
+        # arguments=["import datetime; print(f'GPU Task executed at: {datetime.datetime.now()}')"],
         is_delete_operator_pod=True,
         in_cluster=True,
         affinity=gpu_affinity,  # ✅ GPU 노드에서 실행됨
