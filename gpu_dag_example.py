@@ -56,7 +56,7 @@ with DAG(
             limits={"cpu": "1", "memory": "1Gi"}, 
             requests={"cpu": "0.5", "memory": "512Mi"},  
         ),
-        getlogs=True,
+        get_logs=True,
     )
 
     # ✅ GPU Task (app=gpu 태그를 가진 노드에서 실행)
@@ -93,7 +93,7 @@ with DAG(
             requests={"nvidia.com/gpu": "1", "memory": "1Gi"},
         ),
         env_vars={"TASK_TYPE": "GPU"},
-        getlogs=True,
+        get_logs=True,
     )
     # 실행 순서 지정 (CPU 태스크가 완료된 후 GPU 태스크 실행)
     cpu_task >> gpu_task
